@@ -7,11 +7,11 @@ import random
 
 def probtrackx2_parallel(args):
     tmpLocation = '/tmp/tractography_parallel'
-    serverList = {'M1':'147.47.228.230',
-                  'M2':'147.28.228.253',
-                  'M3':'147.47.238.248',
-                  'M7':'147.47.238.118',
-                  'MT':'147.46.196.62' }
+    serverList = {'M1':'M1',
+                  'M2':'M2',
+                  'M3':'M3',
+                  'M7':'M7',
+                  'MT':'MT' }
 
     marks = {'bedpostDir' : '-s',
              'maskFile' : '-m',
@@ -25,7 +25,8 @@ def probtrackx2_parallel(args):
 
     outDir = args[args.index('-d')+1]
     fileDict = get_file_dict(args, marks)
-    #run_pp_server(servers)
+    servers = serverList.values()
+    run_pp_server(servers)
     #data_dispatch(fileDict, tmpLocation)
     nseed = 100
     rseed = get_rseed(nseed)
