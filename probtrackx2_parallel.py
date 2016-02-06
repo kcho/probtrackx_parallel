@@ -65,7 +65,7 @@ def runCommands(servers, cmds):
     #job_server = pp.Server(ppservers=ppservers, secret="nopassword")
     #job_server = pp.Server(ppservers=ppservers, secret="mysecret")
     #job_server = pp.Server(ncpus, ppservers=ppservers, secret="ccncserver")
-    #ncpus = 20
+    ncpus = 50
     #run_pp_server(servers)
     #print "Starting pp with", job_server.get_ncpus(), "workers"
     jobs = [(cmd,
