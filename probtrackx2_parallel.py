@@ -61,7 +61,6 @@ def probtrackx2_parallel(args):
 
 def runCommands(servers, cmds):
     ppservers=tuple([x+':35000' for x in servers])
-    print ppservers
     job_server = pp.Server(ppservers=ppservers, secret="ccnc")
     #job_server = pp.Server(ppservers=ppservers, secret="nopassword")
     #job_server = pp.Server(ppservers=ppservers, secret="mysecret")
@@ -69,12 +68,6 @@ def runCommands(servers, cmds):
     #ncpus = 20
     #run_pp_server(servers)
     #print "Starting pp with", job_server.get_ncpus(), "workers"
-
-    print cmds
-    #print cmds
-
-    # run using pp
-
     jobs = [(cmd,
              job_server.submit(run,
                                (cmd,),
@@ -110,11 +103,9 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
         elif markName in ['outDir', 'waypoints', 'avoidFile', 'stopFile', 'xfmFile' ]:
             index = args.index(''.join([x for x in args if str(x).startswith(marks[markName])]))
             fileBasename = os.path.basename(fileLocation)
-            print fileBasename, fileLocation
             args[index] = re.sub(marks[markName]+'\S+',
                     marks[markName]+tmpLocation + '/' + fileBasename,
                     args[index])
-            print args[index]
         #elif markName == 'bedpostDir':
             #index = args.index(marks[markName]) + 1
             #fileBasename = os.path.basename(fileLocation)
@@ -136,11 +127,6 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
         newCommand = '/usr/local/fsl/bin/probtrackx2 '+ newArgs + ' --rseed={0}'.format(num)
         cmds.append(newCommand)
     return cmds
-
-
-
-
-
 
 def get_rseed(nseed):
     nseed = 100
