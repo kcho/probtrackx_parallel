@@ -14,6 +14,7 @@ def probtrackx2_parallel(args):
                   #'MT':'MT' }
 
     marks = {'bedpostDir' : '-s',
+             'nsamples':'--nsamples=',
              'maskFile' : '-m',
              'seedFile' : '-x',
              'outDir' : '--dir=',
@@ -98,6 +99,12 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
             index = args.index(''.join([x for x in args if x.startswith('--dir')]))
             args[index] = re.sub('--dir=\S+', 
                     '--dir={0}/merged'.format(tmpLocation),
+                    args[index])
+        elif markName == 'nsamples':
+            index = args.index(''.join([x for x in args if x.startswith('--nsamples')]))
+            origNum = re.search('\d+',args[index])
+            args[index] = re.sub('--nsamples=\S+', 
+                    '--nsamples={0}'.format(tmpLocation/100),
                     args[index])
         elif markName in ['outDir', 'waypoints', 'avoidFile', 'stopFile', 'xfmFile' ]:
             index = args.index(''.join([x for x in args if x.startswith(marks[markName])]))
