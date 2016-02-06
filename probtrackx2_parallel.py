@@ -7,14 +7,18 @@ import random
 
 def probtrackx2_parallel(args):
     tmpLocation = '/tmp/tractography_parallel'
-    serverList = {'M1':'147.47.228.230',
-                  'M2':'ccnc.snu.ac.kr',
-                  'M3':'147.47.238.248',
-                  'M7':'147.47.238.118'}
+    #serverList = {'M1':'147.47.228.230',
+                  #'M2':'ccnc.snu.ac.kr',
+                  #'M3':'147.47.238.248',
+                  #'M7':'147.47.238.118'}
                   #'MT':'MT' }
 
+    serverList = {'M2':'ccnc.snu.ac.kr',
+                  'M3':'147.47.238.248',
+                  'M7':'147.47.238.118'}
+
     marks = {'bedpostDir' : '-s',
-             'nsamples':'--nsamples=',
+             'nsamples':'-P',
              'maskFile' : '-m',
              'seedFile' : '-x',
              'outDir' : '--dir=',
@@ -33,7 +37,7 @@ def probtrackx2_parallel(args):
     print ppservers
     job_server = pp.Server(ppservers=ppservers)
     #job_server = pp.Server(ppservers=ppservers, secret="nopassword")
-    #job_server = pp.Server(ppservers=ppservers, secret="mysecret") 
+    #job_server = pp.Server(ppservers=ppservers, secret="mysecret")
     #job_server = pp.Server(ncpus, ppservers=ppservers, secret="ccncserver")
     #ncpus = 20
     #run_pp_server(servers)
@@ -49,10 +53,10 @@ def probtrackx2_parallel(args):
 
     # run using pp
 
-    jobs = [(cmd, 
+    jobs = [(cmd,
              job_server.submit(run,
-                               (cmd,), 
-                               () , 
+                               (cmd,),
+                               () ,
                                ("os",))) for cmd in cmds]
 
     for command, job in jobs:
@@ -98,12 +102,12 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
     for markName, fileLocation in fileDict.iteritems():
         if markName == 'bedpostDir':
             index = args.index(''.join([x for x in args if x.startswith('--dir')]))
-            args[index] = re.sub('--dir=\S+', 
+            args[index] = re.sub('--dir=\S+',
                     '--dir={0}/merged'.format(tmpLocation),
                     args[index])
         elif markName == 'nsamples':
-            newArgs = re.sub('--nsamples=(\d+)', 50, '|'.join(args))
-            args = newArgs.split('|')
+            index = args.index(marks[markName]) + 1
+            args[index] = 50
         elif markName in ['outDir', 'waypoints', 'avoidFile', 'stopFile', 'xfmFile' ]:
             index = args.index(''.join([x for x in args if x.startswith(marks[markName])]))
             fileBasename = os.path.basename(fileLocation)
@@ -128,7 +132,7 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
         newCommand = '/usr/local/fsl/bin/probtrackx2 '+ ' '.join(args) + ' --rseed={0}'.format(num)
         cmds.append(newCommand)
     return cmds
-        
+
 
 
 
@@ -189,10 +193,10 @@ def data_dispatch(fileDict, tmpLocation, servers):
     print 'Data dispatch completed'
     print '======================='
 
-    
+
 def run(job):
     os.popen(job).read()
-    
+
 
 
 
@@ -211,7 +215,7 @@ if __name__ == '__main__':
 
 
 #print """Usage: python sum_primes.py [ncpus]
-    #[ncpus] - the number of workers to run in parallel, 
+    #[ncpus] - the number of workers to run in parallel,
     #if omitted it will be set to the number of processors in the system
 #"""
 
@@ -227,7 +231,7 @@ if __name__ == '__main__':
 ##job_server = pp.Server(ppservers=ppservers, secret="ccncserver")
 
 
-## Submit a job of calulating sum_primes(100) for execution. 
+## Submit a job of calulating sum_primes(100) for execution.
 ## sum_primes - the function
 ## (100,) - tuple with arguments for sum_primes
 ## (isprime,) - tuple with functions on which function sum_primes depends
@@ -250,10 +254,10 @@ if __name__ == '__main__':
 #with open(commandFile,'r') as f:
     #commandsToRun = f.readlines()
 
-#jobs = [(command, 
+#jobs = [(command,
          #job_server.submit(jobDispatch,
-                           #(command,), 
-                           #() , 
+                           #(command,),
+                           #() ,
                            #("os","sys","re","argparse","textwrap",))) for command in commandsToRun]
 
 #for command, job in jobs:
