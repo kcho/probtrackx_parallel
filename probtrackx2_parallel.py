@@ -35,7 +35,7 @@ def probtrackx2_parallel(args):
     servers = serverList.values()
     ppservers=tuple([x+':35000' for x in servers])
     print ppservers
-    job_server = pp.Server(ppservers=ppservers)
+    job_server = pp.Server(ppservers=ppservers, secret="ccnc")
     #job_server = pp.Server(ppservers=ppservers, secret="nopassword")
     #job_server = pp.Server(ppservers=ppservers, secret="mysecret")
     #job_server = pp.Server(ncpus, ppservers=ppservers, secret="ccncserver")
@@ -43,7 +43,7 @@ def probtrackx2_parallel(args):
     #run_pp_server(servers)
     #print "Starting pp with", job_server.get_ncpus(), "workers"
 
-    #data_dispatch(fileDict, tmpLocation, servers)
+    data_dispatch(fileDict, tmpLocation, servers)
     nseed = 100
     rseed = get_rseed(nseed)
 
@@ -63,7 +63,7 @@ def probtrackx2_parallel(args):
         print command, "is completed", job()
 
     # Data back to here
-    #data_collect(rseed, servers, outDir, tmpLocation)
+    data_collect(rseed, servers, outDir, tmpLocation)
 
     # sum
     fdtList = [os.path.join(outDir,str(x),'fdt_paths.nii.gz') for x in rseed]
@@ -77,7 +77,7 @@ def probtrackx2_parallel(args):
     with open(os.path.join(outDir, 'waytotal'), 'w') as f:
         f.write(totalValue)
 
-    #print 'fslmaths '+fdtList[0]+' -add '.join(fdtList[1:]) +' '+ os.path.join(outDir, 'total_fdt_paths.nii.gz')
+    print 'fslmaths '+fdtList[0]+' -add '.join(fdtList[1:]) +' '+ os.path.join(outDir, 'total_fdt_paths.nii.gz')
 
 
 def data_collect(rseed, servers, outDir, tmpLocation):
@@ -100,12 +100,7 @@ def data_collect(rseed, servers, outDir, tmpLocation):
 def makeCommand(args, fileDict, rseed, marks, tmpLocation):
     print fileDict
     for markName, fileLocation in fileDict.iteritems():
-        if markName == 'bedpostDir':
-            index = args.index(''.join([x for x in args if x.startswith('--dir')]))
-            args[index] = re.sub('--dir=\S+',
-                    '--dir={0}/merged'.format(tmpLocation),
-                    args[index])
-        elif markName == 'nsamples':
+        if markName == 'nsamples':
             index = args.index(marks[markName]) + 1
             args[index] = 50
         elif markName in ['outDir', 'waypoints', 'avoidFile', 'stopFile', 'xfmFile' ]:
@@ -116,6 +111,10 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
                     marks[markName]+tmpLocation + '/' + fileBasename,
                     args[index])
             print args[index]
+        #elif markName == 'bedpostDir':
+            #index = args.index(marks[markName]) + 1
+            #fileBasename = os.path.basename(fileLocation)
+            #args[index] = tmpLocation + '/' + fileBasename
         elif fileLocation != '':
             index = args.index(marks[markName]) + 1
             fileBasename = os.path.basename(fileLocation)
@@ -130,7 +129,7 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
         newArgs = re.sub('dir={0}'.format(tmpLocation),
                 'dir={0}/{1}'.format(tmpLocation, num),
                 ' '.join(args))
-        newCommand = '/usr/local/fsl/bin/probtrackx2 '+ ' '.join(args) + ' --rseed={0}'.format(num)
+        newCommand = '/usr/local/fsl/bin/probtrackx2 '+ newArgs + ' --rseed={0}'.format(num)
         cmds.append(newCommand)
     return cmds
 
@@ -169,10 +168,10 @@ def run_pp_server(servers):
 def data_dispatch(fileDict, tmpLocation, servers):
     sourceFiles = [x for x in fileDict.values() if x != '']
     for server in servers:
-
         mkdirCommand = "ssh {server} 'rm -rf {tmpLocation};mkdir {tmpLocation}'".format(
                     server=server,
                     tmpLocation = tmpLocation)
+        print mkdirCommand
         os.popen(mkdirCommand).read()
         for sourceFile in sourceFiles:
             if 'merged' in sourceFile:
