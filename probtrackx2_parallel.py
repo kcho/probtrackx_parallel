@@ -109,7 +109,7 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
             index = args.index(marks[markName]) + 1
             args[index] = 50
         elif markName in ['outDir', 'waypoints', 'avoidFile', 'stopFile', 'xfmFile' ]:
-            index = args.index(''.join([x for x in args if x.startswith(marks[markName])]))
+            index = args.index(''.join([x for x in args if str(x).startswith(marks[markName])]))
             fileBasename = os.path.basename(fileLocation)
             print fileBasename, fileLocation
             args[index] = re.sub(marks[markName]+'\S+',
@@ -124,6 +124,7 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
             pass
 
     cmds = []
+    args = [str(arg) for arg in args]
     for num in rseed:
         #outDirIndex = args.index('-d') + 1
         newArgs = re.sub('dir={0}'.format(tmpLocation),
