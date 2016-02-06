@@ -31,7 +31,8 @@ def probtrackx2_parallel(args):
     servers = serverList.values()
     ppservers=tuple([x+':35000' for x in servers])
     print ppservers
-    job_server = pp.Server(ppservers=ppservers, secret="nopassword")
+    job_server = pp.Server(ppservers=ppservers)
+    #job_server = pp.Server(ppservers=ppservers, secret="nopassword")
     #job_server = pp.Server(ppservers=ppservers, secret="mysecret") 
     #job_server = pp.Server(ncpus, ppservers=ppservers, secret="ccncserver")
     #ncpus = 20
@@ -101,11 +102,8 @@ def makeCommand(args, fileDict, rseed, marks, tmpLocation):
                     '--dir={0}/merged'.format(tmpLocation),
                     args[index])
         elif markName == 'nsamples':
-            index = args.index(''.join([x for x in args if x.startswith('--nsamples')]))
-            origNum = re.search('\d+',args[index])
-            args[index] = re.sub('--nsamples=\S+', 
-                    '--nsamples={0}'.format(tmpLocation/100),
-                    args[index])
+            newArgs = re.sub('--nsamples=(\d+)', 50, '|'.join(args))
+            args = newArgs.split('|')
         elif markName in ['outDir', 'waypoints', 'avoidFile', 'stopFile', 'xfmFile' ]:
             index = args.index(''.join([x for x in args if x.startswith(marks[markName])]))
             fileBasename = os.path.basename(fileLocation)
