@@ -154,7 +154,7 @@ def get_file_dict(args, marks):
     for markname, mark in marks.iteritems():
         try:
             if '=' in mark:
-                fileLocation = re.search(mark+'(\S+)', ' '.join(args)).group(0)
+                fileLocation = re.search(mark+'(\S+)', ' '.join(args)).group(1)
                 fileDict[markname] = fileLocation
             else:
                 fileLocation = args[args.index(mark) + 1]
@@ -162,6 +162,7 @@ def get_file_dict(args, marks):
         except:
             fileDict[markname] = ''
 
+    print fileDict
     return fileDict
 
 def run_pp_server(servers):
