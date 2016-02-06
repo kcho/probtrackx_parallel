@@ -31,36 +31,14 @@ def probtrackx2_parallel(args):
 
     outDir = re.search('--dir=(\S+)', ' '.join(args)).group(1)
     print outDir
+
     fileDict = get_file_dict(args, marks)
     servers = serverList.values()
-    ppservers=tuple([x+':35000' for x in servers])
-    print ppservers
-    job_server = pp.Server(ppservers=ppservers, secret="ccnc")
-    #job_server = pp.Server(ppservers=ppservers, secret="nopassword")
-    #job_server = pp.Server(ppservers=ppservers, secret="mysecret")
-    #job_server = pp.Server(ncpus, ppservers=ppservers, secret="ccncserver")
-    #ncpus = 20
-    #run_pp_server(servers)
-    #print "Starting pp with", job_server.get_ncpus(), "workers"
-
     data_dispatch(fileDict, tmpLocation, servers)
     nseed = 100
     rseed = get_rseed(nseed)
-
     cmds = makeCommand(args, fileDict, rseed, marks, tmpLocation)
-    print cmds
-    #print cmds
-
-    # run using pp
-
-    jobs = [(cmd,
-             job_server.submit(run,
-                               (cmd,),
-                               () ,
-                               ("os",))) for cmd in cmds]
-
-    for command, job in jobs:
-        print command, "is completed", job()
+    runCommands(servers, cmds)
 
     # Data back to here
     data_collect(rseed, servers, outDir, tmpLocation)
@@ -80,8 +58,34 @@ def probtrackx2_parallel(args):
     print 'fslmaths '+fdtList[0]+' -add '.join(fdtList[1:]) +' '+ os.path.join(outDir, 'total_fdt_paths.nii.gz')
 
 
+
+def runCommands(servers, cmds):
+    ppservers=tuple([x+':35000' for x in servers])
+    print ppservers
+    job_server = pp.Server(ppservers=ppservers, secret="ccnc")
+    #job_server = pp.Server(ppservers=ppservers, secret="nopassword")
+    #job_server = pp.Server(ppservers=ppservers, secret="mysecret")
+    #job_server = pp.Server(ncpus, ppservers=ppservers, secret="ccncserver")
+    #ncpus = 20
+    #run_pp_server(servers)
+    #print "Starting pp with", job_server.get_ncpus(), "workers"
+
+    print cmds
+    #print cmds
+
+    # run using pp
+
+    jobs = [(cmd,
+             job_server.submit(run,
+                               (cmd,),
+                               () ,
+                               ("os",))) for cmd in cmds]
+
+    for command, job in jobs:
+        print command, "is completed", job()
+
 def data_collect(rseed, servers, outDir, tmpLocation):
-    outDirs = ['tmpLocation/'+str(x) for x in rseed]
+    outDirs = [tmpLocation+'/'+str(x) for x in rseed]
     for server in servers:
         for outDir in outDirs:
             scpCommand = 'scp -r {server}:{outDir} \
