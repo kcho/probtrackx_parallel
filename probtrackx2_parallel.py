@@ -191,6 +191,7 @@ def data_dispatch(fileDict, tmpLocation, servers):
                         server = server,
                         tmpLocation = tmpLocation)
 
+            print scpCommand
             os.popen(scpCommand).read()
 
     print '======================='
