@@ -38,11 +38,11 @@ def probtrackx2_parallel(args):
 
     fileDict = get_file_dict(args, marks)
     servers = serverList.values()
-    #data_dispatch(fileDict, tmpLocation, servers)
+    data_dispatch(fileDict, tmpLocation, servers)
     nseed = 100
     rseed = get_rseed(nseed)
     cmds = makeCommand(args, fileDict, rseed, marks, tmpLocation)
-    #runCommands(servers, cmds)
+    runCommands(servers, cmds)
 
     # Data back to here
     data_collect(rseed, servers, outDir, tmpLocation)
@@ -89,8 +89,9 @@ def runCommands(servers, cmds):
                                () ,
                                ("os",))) for cmd in cmds]
 
-    for command, job in jobs:
-        print command, "is completed", job()
+    
+    for num, (command, job) in enumerate(jobs):
+        print num,'\t', command, "is completed", job()
 
 def data_collect(rseed, servers, outDir, tmpLocation):
     outDirs = [tmpLocation+'/'+str(x) for x in rseed]
