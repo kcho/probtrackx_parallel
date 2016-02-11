@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import random
+import glob
 
 def probtrackx2_parallel(args):
     tmpLocation = '/tmp/tractography_parallel'
@@ -13,9 +14,12 @@ def probtrackx2_parallel(args):
                   #'M7':'147.47.238.118'}
                   #'MT':'MT' }
 
-    serverList = {'M2':'ccnc.snu.ac.kr',
-                  'M3':'147.47.238.248',
-                  'M7':'147.47.238.118'}
+    #serverList = {'M2':'ccnc.snu.ac.kr',
+                  #'M1':'brainimage.snu.ac.kr',
+                  #'M3':'147.47.238.248',
+                  #'M7':'147.47.238.118'}
+
+    serverList = {'M1':'brainimage.snu.ac.kr'}
 
     marks = {'bedpostDir' : '-s',
              'nsamples':'-P',
@@ -34,38 +38,49 @@ def probtrackx2_parallel(args):
 
     fileDict = get_file_dict(args, marks)
     servers = serverList.values()
-    data_dispatch(fileDict, tmpLocation, servers)
+    #data_dispatch(fileDict, tmpLocation, servers)
     nseed = 100
     rseed = get_rseed(nseed)
     cmds = makeCommand(args, fileDict, rseed, marks, tmpLocation)
-    runCommands(servers, cmds)
+    #runCommands(servers, cmds)
 
     # Data back to here
     data_collect(rseed, servers, outDir, tmpLocation)
 
     # sum
-    fdtList = [os.path.join(outDir,str(x),'fdt_paths.nii.gz') for x in rseed]
-    waytotalList = [os.path.join(outDir,str(x),'waytotal') for x in rseed]
+    fdtList = glob.glob(tmpLocation+'/[1234567890]*/*/fdt_paths.nii.gz')
+    #[os.path.join(outDir,str(x),'fdt_paths.nii.gz') for x in rseed]
+    waytotalList = glob.glob(tmpLocation+'/[1234567890]*/*/waytotal')
+    #for root, dirs, files in os.walk(tmpLocation):
+        #if 'waytotal' in files:
+            #waytotalList.append(os.path.join(root,'waytotal'))
+    #waytotalList = [os.path.join(outDir,str(x),'waytotal') for x in rseed]
 
     totalValue = 0
     for waytotal in waytotalList:
+        print waytotal
         with open(waytotal, 'r') as f:
-            value = int(f.read())
+            value_init = f.read()
+            print value_init
+            value = int(value_init)
             totalValue += value
-    with open(os.path.join(outDir, 'waytotal'), 'w') as f:
-        f.write(totalValue)
+    print totalValue
+    with open(os.path.join(tmpLocation, 'waytotal'), 'w') as f:
+        f.write(str(totalValue))
 
-    print 'fslmaths '+fdtList[0]+' -add '.join(fdtList[1:]) +' '+ os.path.join(outDir, 'total_fdt_paths.nii.gz')
+    command = 'fslmaths '+fdtList[0]+' -add '+ ' -add '.join(fdtList[1:]) +' '+ os.path.join(tmpLocation, 'total_fdt_paths.nii.gz')
+    print command
+    print os.popen(command).read()
 
 
 
 def runCommands(servers, cmds):
     ppservers=tuple([x+':35000' for x in servers])
-    job_server = pp.Server(ppservers=ppservers, secret="ccnc")
+    job_server = pp.Server(12, ppservers=ppservers, secret="ccnc")
     #job_server = pp.Server(ppservers=ppservers, secret="nopassword")
     #job_server = pp.Server(ppservers=ppservers, secret="mysecret")
     #job_server = pp.Server(ncpus, ppservers=ppservers, secret="ccncserver")
-    ncpus = 50
+    #ncpus = 50
     #run_pp_server(servers)
     #print "Starting pp with", job_server.get_ncpus(), "workers"
     jobs = [(cmd,
@@ -85,8 +100,8 @@ def data_collect(rseed, servers, outDir, tmpLocation):
                                  {outDir}'.format(
                     server = server,
                     outDir = outDir)
-            #print scpCommand
-            os.popen(scpCommand).read()
+            print scpCommand
+            #os.popen(scpCommand).read()
 
     print '========================='
     print 'Data collection completed'
