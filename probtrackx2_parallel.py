@@ -38,13 +38,40 @@ def probtrackx2_parallel(args):
     if args.osxserver: # If server system could be used
         print('Not ready yet')
     else: # Single workstation
-        pool = Pool(10)
+        if args.j == 'max':
+            pool = Pool()
+        else:
+            pool = Pool(args.j)
+
         for i,_ in enumerate(pool.imap_unordered(voxel_tractography, inputList), 1):
             sys.stderr.write('\rProgress {0:%}'. format(i/len(inputList)))
 
     print('\rDone !')
 
+    # Merge outputs
+    merge_3d_imgs(args.outdir, coordinates)
 
+def merge_3d_imgs(outdir, coordinates):
+    '''
+    Merge the 3D maps from outdir
+    '''
+    maps=[]
+    for root, dirs, files in os.walk(outdir):
+        for f in files:
+            if re.search('^fdt_.*nii.gz$', f):
+                maps.append(join(root, f))
+
+    f = nb.load(maps[0])
+    data = f.get_data()
+
+    merged = np.zeros((data.shape[0], data.shape[1], data.shape[2], len(coordinates)))
+    for num, img in enumerate(maps):
+        f = nb.load(img)
+        data = f.get_data()
+        merged[:,:,:,num] = data
+
+    mergedImg = nb.Nifti1Image(merged, affine = f.affine)
+    mergedImg.to_filename(join(outdir, 'merged.nii.gz'))
 
 def voxel_tractography(args):
     '''
@@ -320,7 +347,7 @@ if __name__ == '__main__':
     parser.add_argument( '-m', '--fsmask', help='Freesurfer brain mask location') 
     parser.add_argument( '-r', '--regmat', help='Mask to diffusion registration matrix') 
     parser.add_argument( '-o', '--outdir', help='Output directory')
-    parser.add_argument( '-j', '--j', help='Number of cores to use', default=10)
+    parser.add_argument( '-j', '--j', help='Number of cores to use', default='max')
     parser.add_argument( '-x', '--osxserver', help='Number of cores to use', action='store_true')
 
     args = parser.parse_args()
