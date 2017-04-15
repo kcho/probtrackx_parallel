@@ -13,13 +13,12 @@ import glob
 
 
 def probtrackx2_parallel(args):
-
     print('Running probabilistic tractography in parallel')
 
-    # load seed file
+    # load seed mask file
     f = nb.load(args.seedmask)
     data = f.get_data()
-    coordinates = np.argwhere(data==1)
+    coordinates = np.argwhere(data==1) # list of coordinates of all voxels
 
     if isdir(args.outdir):
         pass
@@ -36,9 +35,12 @@ def probtrackx2_parallel(args):
                             args.bedpostxdir, args.fsmask, args.regmat))
 
     # Parallization
-    pool = Pool(10)
-    for i,_ in enumerate(pool.imap_unordered(voxel_tractography, inputList), 1):
-        sys.stderr.write('\rdone {0:%}'. format(i/len(inputList)))
+    if args.osxserver: # If server system could be used
+        print('Not ready yet')
+    else: # Single workstation
+        pool = Pool(10)
+        for i,_ in enumerate(pool.imap_unordered(voxel_tractography, inputList), 1):
+            sys.stderr.write('\rProgress {0:%}'. format(i/len(inputList)))
 
     print('\rDone !')
 
@@ -46,8 +48,12 @@ def probtrackx2_parallel(args):
 
 def voxel_tractography(args):
     '''
+    Writes text file containing the coordinate of a voxel,
+    which is then used in a probabilistic tractography
+
     Article about random seed : https://www.jiscmail.ac.uk/cgi-bin/webadmin?A2=fsl;daca6637.1603
     '''
+
     coordinate, outdir, bedpostxdir, fsmask, regmat = args
 
     # make outdir
@@ -87,8 +93,7 @@ def voxel_tractography(args):
     command = re.sub('\s+', ' ', command)
 
     os.popen(command).read()
-    #for coordinate in coordinates:
-        
+
 
     #tmpLocation = '/tmp/tractography_parallel'
     ##serverList = {'M1':'147.47.228.230',
@@ -316,6 +321,7 @@ if __name__ == '__main__':
     parser.add_argument( '-r', '--regmat', help='Mask to diffusion registration matrix') 
     parser.add_argument( '-o', '--outdir', help='Output directory')
     parser.add_argument( '-j', '--j', help='Number of cores to use', default=10)
+    parser.add_argument( '-x', '--osxserver', help='Number of cores to use', action='store_true')
 
     args = parser.parse_args()
 
