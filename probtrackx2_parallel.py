@@ -40,6 +40,8 @@ def probtrackx2_parallel(args):
     for i,_ in enumerate(pool.imap_unordered(voxel_tractography, inputList), 1):
         sys.stderr.write('\rdone {0:%}'. format(i/len(inputList)))
 
+    print('\rDone !')
+
 
 
 def voxel_tractography(args):
